@@ -613,6 +613,13 @@ a { color: inherit; text-decoration: none; }
     line-height: 1.7;
 }
 
+.legal-link {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.legal-link:hover { text-decoration: underline; }
+
 .legal-cta { padding: 5rem 2rem; }
 
 @media (max-width: 600px) {
