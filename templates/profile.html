@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+    <div class="profile-container">
+
+        <header class="profile-header">
+            <div class="profile-avatar" aria-hidden="true">{{ initials }}</div>
+            <div class="profile-identity">
+                <h1 class="profile-name">{{ user.name }}</h1>
+                <p class="profile-meta">{{ user.email }}</p>
+                {% if member_since %}
+                <p class="profile-meta">Member since {{ member_since }}</p>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="profile-stats">
+            <article class="profile-stat profile-stat-primary">
+                <span class="profile-stat-label">Total spent</span>
+                <span class="profile-stat-value">{{ total_spent|inr }}</span>
+            </article>
+            <article class="profile-stat">
+                <span class="profile-stat-label">Spent this month</span>
+                <span class="profile-stat-value">{{ month_total|inr }}</span>
+            </article>
+            <article class="profile-stat">
+                <span class="profile-stat-label">Expenses</span>
+                <span class="profile-stat-value">{{ expense_count }}</span>
+            </article>
+            <article class="profile-stat">
+                <span class="profile-stat-label">Top category</span>
+                <span class="profile-stat-value">{{ top_category or "—" }}</span>
+            </article>
+        </div>
+
+        {% if expense_count %}
+        <div class="profile-grid">
+            <section class="profile-card">
+                <h2 class="profile-card-title">Spending by category</h2>
+                <div class="profile-bars">
+                    {% for c in categories %}
+                    <div class="profile-bar-row">
+                        <div class="profile-bar-head">
+                            <span class="profile-bar-name">
+                                <span class="profile-dot profile-dot--{{ c.slug }}"></span>{{ c.name }}
+                            </span>
+                            <span class="profile-bar-amount">{{ c.total|inr }}
+                                <span class="profile-bar-pct">{{ c.pct }}%</span>
+                            </span>
+                        </div>
+                        <div class="profile-bar-track" role="img" aria-label="{{ c.name }} {{ c.pct }}%">
+                            <div class="profile-bar profile-bar--{{ c.slug }}" style="width: {{ c.pct }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="profile-card">
+                <h2 class="profile-card-title">Recent expenses</h2>
+                <ul class="profile-expenses">
+                    {% for e in recent_expenses %}
+                    <li class="profile-expense">
+                        <span class="profile-expense-date">{{ e.date }}</span>
+                        <span class="profile-expense-desc">{{ e.description or "—" }}</span>
+                        <span class="profile-chip profile-chip--{{ e.slug }}">{{ e.category }}</span>
+                        <span class="profile-expense-amount">{{ e.amount|inr }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </div>
+        {% else %}
+        <div class="profile-empty">
+            <h2 class="profile-empty-title">No expenses yet</h2>
+            <p class="profile-empty-body">Add your first expense and your spending summary will show up here.</p>
+            <a href="{{ url_for('add_expense') }}" class="btn-primary">Add expense</a>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}
