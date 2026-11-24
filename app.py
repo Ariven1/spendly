@@ -1,11 +1,16 @@
 import os
 import sqlite3
-from datetime import date, datetime
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database.db import get_db, init_db, seed_db
+from database.queries import (
+    get_category_breakdown,
+    get_recent_transactions,
+    get_summary_stats,
+    get_user_by_id,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-secret-change-me")
@@ -15,14 +20,6 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 with app.app_context():
     init_db()
     seed_db()
-
-KNOWN_CATEGORIES = {"food", "transport", "bills", "health", "entertainment", "shopping", "other"}
-
-
-def _category_slug(category):
-    slug = (category or "").lower()
-    return slug if slug in KNOWN_CATEGORIES else "other"
-
 
 @app.template_filter("inr")
 def inr(value):
@@ -145,53 +142,10 @@ def profile():
     if not user_id:
         return redirect(url_for("login"))
 
-    this_month = date.today().strftime("%Y-%m")
-
-    conn = get_db()
-    try:
-        user = conn.execute(
-            "SELECT id, name, email, created_at FROM users WHERE id = ?", (user_id,)
-        ).fetchone()
-        if user is None:
-            session.clear()
-            return redirect(url_for("login"))
-
-        totals = conn.execute(
-            "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS n"
-            " FROM expenses WHERE user_id = ?",
-            (user_id,),
-        ).fetchone()
-        month_total = conn.execute(
-            "SELECT COALESCE(SUM(amount), 0) FROM expenses"
-            " WHERE user_id = ? AND strftime('%Y-%m', date) = ?",
-            (user_id, this_month),
-        ).fetchone()[0]
-        category_rows = conn.execute(
-            "SELECT category, SUM(amount) AS total FROM expenses"
-            " WHERE user_id = ? GROUP BY category ORDER BY total DESC",
-            (user_id,),
-        ).fetchall()
-        recent = conn.execute(
-            "SELECT id, date, description, category, amount FROM expenses"
-            " WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT 8",
-            (user_id,),
-        ).fetchall()
-    finally:
-        conn.close()
-
-    grand_total = totals["total"]
-    categories = [
-        {
-            "name": row["category"],
-            "slug": _category_slug(row["category"]),
-            "total": row["total"],
-            "pct": round(row["total"] / grand_total * 100) if grand_total else 0,
-        }
-        for row in category_rows
-    ]
-    recent_expenses = [
-        {**dict(row), "slug": _category_slug(row["category"])} for row in recent
-    ]
+    user = get_user_by_id(user_id)
+    if user is None:
+        session.clear()
+        return redirect(url_for("login"))
 
     parts = user["name"].split()
     if len(parts) > 1:
@@ -199,22 +153,25 @@ def profile():
     else:
         initials = user["name"][:2].upper()
 
-    try:
-        member_since = datetime.strptime(
-            user["created_at"], "%Y-%m-%d %H:%M:%S"
-        ).strftime("%B %Y")
-    except (TypeError, ValueError):
-        member_since = None
+    recent_expenses = get_recent_transactions(user_id)
+
+    stats = get_summary_stats(user_id)
+    total_spent = stats["total_spent"]
+    month_total = stats["month_total"]
+    expense_count = stats["transaction_count"]
+    top_category = stats["top_category"]
+
+    categories = get_category_breakdown(user_id)
 
     return render_template(
         "profile.html",
         user=user,
         initials=initials,
-        member_since=member_since,
-        total_spent=grand_total,
+        member_since=user["member_since"],
+        total_spent=total_spent,
         month_total=month_total,
-        expense_count=totals["n"],
-        top_category=categories[0]["name"] if categories else None,
+        expense_count=expense_count,
+        top_category=top_category,
         categories=categories,
         recent_expenses=recent_expenses,
     )
