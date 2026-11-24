@@ -892,15 +892,32 @@ a { color: inherit; text-decoration: none; }
     color: var(--ink-faint);
 }
 
-.profile-bar-track {
+.profile-meter {
+    display: block;
+    width: 100%;
     height: 9px;
-    background: var(--border-soft);
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
     border-radius: 999px;
     overflow: hidden;
+    background: var(--border-soft);
 }
 
-.profile-bar {
-    height: 100%;
+.profile-meter::-webkit-meter-bar {
+    background: var(--border-soft);
+    border: none;
+    border-radius: 999px;
+    height: 9px;
+}
+
+.profile-meter::-webkit-meter-optimum-value {
+    background: var(--bar-color, var(--cat-other));
+    border-radius: 999px;
+}
+
+.profile-meter::-moz-meter-bar {
+    background: var(--bar-color, var(--cat-other));
     border-radius: 999px;
 }
 
@@ -972,13 +989,21 @@ a { color: inherit; text-decoration: none; }
     margin-bottom: 1.5rem;
 }
 
-.profile-dot--food, .profile-bar--food { background: var(--cat-food); }
-.profile-dot--transport, .profile-bar--transport { background: var(--cat-transport); }
-.profile-dot--bills, .profile-bar--bills { background: var(--cat-bills); }
-.profile-dot--health, .profile-bar--health { background: var(--cat-health); }
-.profile-dot--entertainment, .profile-bar--entertainment { background: var(--cat-entertainment); }
-.profile-dot--shopping, .profile-bar--shopping { background: var(--cat-shopping); }
-.profile-dot--other, .profile-bar--other { background: var(--cat-other); }
+.profile-dot--food { background: var(--cat-food); }
+.profile-dot--transport { background: var(--cat-transport); }
+.profile-dot--bills { background: var(--cat-bills); }
+.profile-dot--health { background: var(--cat-health); }
+.profile-dot--entertainment { background: var(--cat-entertainment); }
+.profile-dot--shopping { background: var(--cat-shopping); }
+.profile-dot--other { background: var(--cat-other); }
+
+.profile-meter--food { --bar-color: var(--cat-food); }
+.profile-meter--transport { --bar-color: var(--cat-transport); }
+.profile-meter--bills { --bar-color: var(--cat-bills); }
+.profile-meter--health { --bar-color: var(--cat-health); }
+.profile-meter--entertainment { --bar-color: var(--cat-entertainment); }
+.profile-meter--shopping { --bar-color: var(--cat-shopping); }
+.profile-meter--other { --bar-color: var(--cat-other); }
 
 .profile-chip--food { background: color-mix(in srgb, var(--cat-food) 14%, var(--paper-card)); }
 .profile-chip--transport { background: color-mix(in srgb, var(--cat-transport) 14%, var(--paper-card)); }

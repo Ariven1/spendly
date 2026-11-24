@@ -47,13 +47,11 @@
                             <span class="profile-bar-name">
                                 <span class="profile-dot profile-dot--{{ c.slug }}"></span>{{ c.name }}
                             </span>
-                            <span class="profile-bar-amount">{{ c.total|inr }}
+                            <span class="profile-bar-amount">{{ c.amount|inr }}
                                 <span class="profile-bar-pct">{{ c.pct }}%</span>
                             </span>
                         </div>
-                        <div class="profile-bar-track" role="img" aria-label="{{ c.name }} {{ c.pct }}%">
-                            <div class="profile-bar profile-bar--{{ c.slug }}" style="width: {{ c.pct }}%"></div>
-                        </div>
+                        <meter class="profile-meter profile-meter--{{ c.slug }}" min="0" max="100" value="{{ c.pct }}" aria-label="{{ c.name }} {{ c.pct }}%">{{ c.pct }}%</meter>
                     </div>
                     {% endfor %}
                 </div>
